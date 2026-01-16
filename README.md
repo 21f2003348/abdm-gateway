@@ -24,8 +24,8 @@ The ABDM Gateway is a backend service designed to handle various API routes and 
 
 2. **Set Up a Virtual Environment** (optional):
    ```bash
-   python -m venv venv
-   source venv/bin/activate   # On Windows: venv\Scripts\activate
+   python -m venv .venv
+   .venv/Scripts/Activate
    ```
 
 3. **Install Dependencies**:
