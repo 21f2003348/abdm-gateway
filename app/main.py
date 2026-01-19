@@ -1,17 +1,38 @@
 from fastapi import FastAPI 
+from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger 
 
 from app.core.config import get_settings
 from app.core.logging import configure_logging
 from app.api.routes import api_router
+from app.database.init_db import (
+    init_db, seed_clients, seed_bridges, seed_bridge_services, seed_patients,
+    seed_linking_requests, seed_linked_care_contexts, seed_consent_requests,
+    seed_data_transfers
+)
+from app.services.task_processor import task_processor
 
 settings = get_settings()
 configure_logging(settings.log_level)
 
 app = FastAPI(
     title="ABDM Gateway",
-    description="API Gateway for ABDM services",
-    version="0.1.0"
+    description="API Gateway for ABDM services with background task processing",
+    version="0.2.0"
+)
+
+# Add CORS middleware to allow cross-origin requests from hospital and other frontends
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://127.0.0.1:8080",
+        "http://localhost:8080",
+        "http://127.0.0.1",
+        "http://localhost"
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 app.include_router(api_router, prefix="/api")
@@ -24,10 +45,29 @@ async def health_check():
 async def startup_event():
     logger.info(f"Starting ADBM Gateway on {settings.app_host}:{settings.app_port}")
     logger.info(f"Envirnment: {settings.app_env}")
+    logger.info("Initializing database...")
+    await init_db()
+    await seed_clients()
+    await seed_bridges()
+    await seed_bridge_services()
+    await seed_patients()
+    await seed_linking_requests()
+    await seed_linked_care_contexts()
+    await seed_consent_requests()
+    await seed_data_transfers()
+    logger.info("Database initialized with all dummy data.")
+    
+    # Start background task processor for webhook retries
+    logger.info("Starting background task processor...")
+    await task_processor.start()
+    logger.info("Background task processor started.")
 
 @app.on_event("shutdown")
 async def stutdown_event():
-    logger.info("Setting down ABDM Gateway")
+    logger.info("Shutting down ABDM Gateway")
+    # Stop background task processor
+    await task_processor.stop()
+    logger.info("Background task processor stopped.")
 
 @app.get("/hello")
 async def hello():

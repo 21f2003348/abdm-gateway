@@ -1,45 +1,69 @@
-import uuid 
+import uuid
 from typing import Dict, Optional
-from datetime import datetime, timezone
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
+from app.database.models import ConsentRequest
 
-_consents: Dict[str, Dict] = {}
 
-def init_consent(patient_id: str, hip_id: str, purpose: Dict) -> Dict:
+async def init_consent(patient_id: str, hip_id: str, purpose: Dict, db: AsyncSession) -> Dict:
+    """Initialize a consent request."""
     consent_id = str(uuid.uuid4())
-    _consents[consent_id] = {
-        "consentRequestId": consent_id,
-        "patientId": patient_id,
-        "hipId": hip_id,
-        "purpose": purpose,
-        "status": "REQUESTED",
-        "grantedAt": None
-    }
-    return {"consentRequestId": consent_id, "status": "REQUESTED"}
+    
+    new_consent = ConsentRequest(
+        consent_request_id=consent_id,
+        patient_id=patient_id,
+        hip_id=hip_id,
+        purpose=purpose,
+        status="INITIATED"
+    )
+    db.add(new_consent)
+    await db.commit()
+    
+    return {"consentRequestId": consent_id, "status": "INITIATED"}
 
-def get_consent_status(consent_id: str) -> Optional[Dict]:
-    consent = _consents.get(consent_id)
+
+async def get_consent_status(consent_id: str, db: AsyncSession) -> Optional[Dict]:
+    """Get the status of a consent request."""
+    result = await db.execute(
+        select(ConsentRequest).where(ConsentRequest.consent_request_id == consent_id)
+    )
+    consent = result.scalar()
+    
     if consent:
         return {
             "consentRequestId": consent_id,
-            "status": consent["status"],
-            "grantedAt": consent["grantedAt"]
+            "status": consent.status,
+            "createdAt": consent.created_at.isoformat() if consent.created_at else None
         }
     return None
 
-def fetch_consent(consent_id: str) -> Optional[Dict]:
-    consent = _consents.get(consent_id)
+
+async def fetch_consent(consent_id: str, db: AsyncSession) -> Optional[Dict]:
+    """Fetch a consent artefact."""
+    result = await db.execute(
+        select(ConsentRequest).where(ConsentRequest.consent_request_id == consent_id)
+    )
+    consent = result.scalar()
+    
     if consent:
         return {
             "consentRequestId": consent_id,
-            "status": consent["status"],
+            "status": consent.status,
             "consentArtefact": {"data": "encrypted-consent-artefact"}
         }
     return None
 
-def notify_consent(consent_id: str, status: str) -> Dict:
-    if consent_id in _consents:
-        _consents[consent_id]["status"] = status
-        if status == "GRANTED":
-            _consents[consent_id]["grantedAt"] = datetime.now(timezone.utc).isoformat()
+
+async def notify_consent(consent_id: str, status: str, db: AsyncSession) -> Dict:
+    """Update consent status via notification."""
+    result = await db.execute(
+        select(ConsentRequest).where(ConsentRequest.consent_request_id == consent_id)
+    )
+    consent = result.scalar()
+    
+    if consent:
+        consent.status = status
+        await db.commit()
         return {"consentRequestId": consent_id, "status": status}
     
+    return {"consentRequestId": consent_id, "status": "NOT_FOUND"}

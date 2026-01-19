@@ -24,3 +24,17 @@ class BridgeService(BaseModel):
     name: str
     active: bool = True
     version: str = "v1"
+
+class BridgeServiceRegisterRequest(BaseModel):
+    bridgeId: str
+    serviceId: str
+    serviceName: str
+    serviceType: str
+    description: str = None
+
+class BridgeServiceRegisterResponse(BaseModel):
+    serviceId: str
+    bridgeId: str
+    serviceName: str
+    serviceType: str
+    description: str = None

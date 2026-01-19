@@ -14,12 +14,12 @@ class ConsentInitRequest(BaseModel):
 
 class ConsentInitResponse(BaseModel):
     consentRequestId: str
-    status: str = "REQUESTED"
+    status: str = "INITIATED"
 
 class ConsentStatusResponse(BaseModel):
     consentRequestId: str
     status: str
-    grantedAt: Optional[str] = None
+    createdAt: Optional[str] = None
 
 class ConsentFetchRequest(BaseModel):
     consentRequestId: str

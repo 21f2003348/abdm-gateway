@@ -1,14 +1,21 @@
 from fastapi import APIRouter, HTTPException, status, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.schemas import SessionRequest, SessionResponse
 from app.services.auth_service import validate_client_credentials, issue_access_token
 from app.deps.headers import require_gateway_headers
+from app.database.connection import get_db
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 @router.post("/session", response_model=SessionResponse)
-def create_session(body: SessionRequest, headers=Depends(require_gateway_headers)):
-    if not validate_client_credentials(body.clientId, body.clientSecret):
+async def create_session(
+    body: SessionRequest, 
+    headers=Depends(require_gateway_headers),
+    db: AsyncSession = Depends(get_db)
+):
+    is_valid = await validate_client_credentials(body.clientId, body.clientSecret, db)
+    if not is_valid:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid client credentials"

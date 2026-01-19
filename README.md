@@ -1,6 +1,7 @@
 # ABDM Gateway
 
 ## Overview
+
 The ABDM Gateway is a backend service designed to handle various API routes and services for the ABDM ecosystem. This document provides instructions on how to set up and start the application.
 
 ---
@@ -17,15 +18,17 @@ The ABDM Gateway is a backend service designed to handle various API routes and 
 ## Installation Steps
 
 1. **Clone the Repository**:
+
    ```bash
    git clone <repository-url>
    cd abdm-gateway
    ```
 
 2. **Set Up a Virtual Environment** (optional):
+
    ```bash
    python -m venv venv
-   source venv/bin/activate   # On Windows: venv\Scripts\activate
+   venv\Scripts\Activate
    ```
 
 3. **Install Dependencies**:
@@ -38,11 +41,13 @@ The ABDM Gateway is a backend service designed to handle various API routes and 
 ## Starting the Application
 
 1. **Activate the Virtual Environment**:
+
    ```bash
    .venv/Scripts/Activate
    ```
 
 2. **Run the Application with Uvicorn**:
+
    ```bash
    uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
    ```
@@ -76,6 +81,7 @@ The ABDM Gateway is a backend service designed to handle various API routes and 
 ## Contributing
 
 Contributions are welcome! Please follow the standard Git workflow:
+
 1. Fork the repository.
 2. Create a feature branch.
 3. Submit a pull request.

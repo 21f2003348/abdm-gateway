@@ -2,7 +2,7 @@ from .auth import SessionRequest, SessionResponse
 from .bridge import (  # noqa: F401
     BridgeRegisterRequest, BridgeRegisterResponse,
     BridgeUrlUpdateRequest, BridgeUrlUpdateResponse,
-    BridgeService
+    BridgeService, BridgeServiceRegisterRequest, BridgeServiceRegisterResponse
 )
 from .linking import (  # noqa: F401
     LinkTokenRequest, LinkTokenResponse,

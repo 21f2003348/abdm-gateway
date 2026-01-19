@@ -8,6 +8,7 @@ class LinkTokenRequest(BaseModel):
 class LinkTokenResponse(BaseModel):
     token: str
     expiresIn: int = 300
+    txnId: str
 
 class CareContext(BaseModel):
     id: str

@@ -16,6 +16,9 @@ class Settings:
         self.jwt_alg: str = os.getenv("JWT_ALG", "HS256")
         self.jwt_expiry_seconds: int = int(os.getenv("JWT_EXPIRY_SECONDS", "900"))
 
+        # Database settings
+        self.database_url: str = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./abdm_gateway.db")
+
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
     return Settings()
